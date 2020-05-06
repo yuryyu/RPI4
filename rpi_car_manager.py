@@ -7,6 +7,7 @@ import queue
 import random
 
 from rpi_init import *
+carmoving =True
 
 def on_log(client, userdata, level, buf):
         print("log: "+buf)
@@ -26,17 +27,23 @@ def on_message(client,userdata,msg):
 def process_message(client,msg,topic):
         print("message processed: ",topic,msg)
         if msg_device in msg:
-            print('Door opened!')
-            if stranger():
+            print('Belt opened!')
+            if manager():
                 send_alarm(client)
 
-def stranger():
-    return True
+def manager():
+    if carmoving:
+        return True
+
+    # if imageproc():
+    #     return True    
+
+    return False
 
 def send_alarm(client):
     print("Sending alarm message")
     tnow=time.localtime(time.time())
-    client.publish(pub_topic,time.asctime(tnow)+' Alarm! Penetration! Call to Police!')    
+    client.publish(pub_topic,time.asctime(tnow)+' Alarm! Belt opend!')    
 
 def main():    
 
