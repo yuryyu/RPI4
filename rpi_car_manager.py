@@ -27,9 +27,11 @@ def on_message(client,userdata,msg):
 def process_message(client,msg,topic):
         print("message processed: ",topic,msg)
         if msg_device in msg:
-            print('Belt opened!')
-            if manager():
-                send_alarm(client)
+            print('Belt opened! All good!')
+        else:
+            print('Belt Closed! Alarm!')
+            send_alarm(client)
+
 
 def manager():
     if carmoving:
@@ -43,7 +45,7 @@ def manager():
 def send_alarm(client):
     print("Sending alarm message")
     tnow=time.localtime(time.time())
-    client.publish(pub_topic,time.asctime(tnow)+' Alarm! Belt opend!')    
+    client.publish(pub_topic,time.asctime(tnow)+' Alarm! Child in auto!')    
 
 def main():    
 
