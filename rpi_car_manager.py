@@ -5,52 +5,37 @@ import sys, getopt
 import logging
 import queue
 import random
-
 from rpi_init import *
-carmoving =True
 
 def on_log(client, userdata, level, buf):
-        print("log: "+buf)
+    print("log: "+buf)
 def on_connect(client, userdata, flags, rc):
     if rc==0:
         print("connected OK")
     else:
         print("Bad connection Returned code=",rc)
 def on_disconnect(client, userdata, flags, rc=0):
-        print("DisConnected result code "+str(rc))
+    print("DisConnected result code "+str(rc))
 def on_message(client,userdata,msg):
-        topic=msg.topic
-        m_decode=str(msg.payload.decode("utf-8","ignore"))
-        process_message(client,m_decode,topic)
-        print(m_decode)
+    topic=msg.topic
+    m_decode=str(msg.payload.decode("utf-8","ignore"))
+    process_message(client,m_decode,topic)
+    print(m_decode)
     
 def process_message(client,msg,topic):
-        print("message processed: ",topic,msg)
-        if msg_device in msg:
-            print('Belt opened! All good!')
-        else:
-            print('Belt Closed! Alarm!')
-            send_alarm(client)
-
-
-def manager():
-    if carmoving:
-        return True
-
-    # if imageproc():
-    #     return True    
-
-    return False
-
-def send_alarm(client):
-    print("Sending alarm message")
+    print("message processed: ",topic,msg)
+    for ms in msg_device:
+        if ms in msg:
+            send_msg(client, pub_topic, msg)
+            
+def send_msg(client, topic, message):
+    print("Sending message: " + message)
     tnow=time.localtime(time.time())
-    client.publish(pub_topic,time.asctime(tnow)+' Alarm! Child in auto!')    
+    client.publish(topic,time.asctime(tnow) + message)   
 
-def main():    
-
+def client_init(cname):
     r=random.randrange(1,100000)
-    ID="RPI4_-"+str(r)
+    ID=cname+str(r)
 
     client = mqtt.Client(ID, clean_session=True) # create new client instance
     # define callback function
@@ -63,10 +48,16 @@ def main():
         client.username_pw_set(username, password)        
     print("Connecting to broker ",broker_ip)
     client.connect(broker_ip,port)     #connect to broker
+    return client
+
+def main():    
+    cname = "Car_Manager-"
+    client = client_init(cname)
 
     # main monitoring loop
     client.loop_start()  #Start loop
-    client.subscribe(sub_topic)
+    for tp in sub_topic:
+        client.subscribe(tp)
     try:
         while conn_time==0:
             pass
